@@ -1,0 +1,52 @@
+.chrome_hint {
+    background-color: yellow;
+    border: 2px solid orange;
+    font-size: 10pt;
+    padding: 0pt, 1pt;
+    margin: 0;
+    line-height: 10pt;
+    position: absolute;
+    z-index: 2147483647;
+    color: #000;
+    -webkit-transition: opacity 0.1s linear;
+}
+.chrome_not_candidate {
+    opacity: 0;
+}
+
+#chrome_hitahintpanel {
+    left: 0px;
+    bottom: 0px;
+    position: fixed;
+    z-index: 2147483647;
+    border-radius: 6px;
+    -webkit-transition: opacity 0.1s linear;
+}
+#chrome_hitahintinput {
+    outline:0px none black;
+    font-size: 20pt;
+    border-radius: 6px;
+}
+
+#chrome_linksearchpanel {
+    left: 0px;
+    bottom: 0px;
+    position: fixed;
+    z-index: 2147483647;
+    border-radius: 6px;
+    -webkit-transition: opacity 0.1s linear;
+}
+#chrome_linksearchinput {
+    outline:0px none black;
+    font-size: 20pt;
+    border-radius: 6px;
+}
+
+.chrome_search_candidate {
+    background-color: yellow !important;
+    z-index: 2147483647;
+}
+.chrome_search_selected {
+    background-color: orange !important;
+    z-index: 2147483647;
+}

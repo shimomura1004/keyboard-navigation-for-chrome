@@ -1,0 +1,14 @@
+{
+  "content_scripts": [
+    {
+      "js": [ "jquery.js", "migemoDict.js", "migemo.js", "navigate.js" ],
+      "css": [ "navigate.css" ],
+      "matches": [ "http://*/*" ]
+    }
+  ],
+  "run_at": "document_start",
+  "options_page": "options.html",
+  "version": "0.3",
+  "name": "Keyboard navigation for Chrome",
+  "description": "Hit-a-Hint and migemo link search for Chrome"
+}
