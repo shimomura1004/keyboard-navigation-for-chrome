@@ -76,6 +76,7 @@ var HitAHintMode = function(){
    this.panel = $("<div id='chrome_hitahintpanel'"+
                   "style='opacity:0'></div>");
    this.input = $("<input id='chrome_hitahintinput' type='text'></input>");
+   this.panel.css("display", "none");
    this.panel.append(this.input);
    $("body").append(this.panel);
    this.input.keyup(function(e){
@@ -156,6 +157,7 @@ var HitAHintMode = function(){
    };
 
    this.init = function(){
+      this.panel.css("display", "block");
       this.panel.css("opacity", "0.9");
       this.input[0].focus();
       this.showHint();
@@ -165,6 +167,7 @@ var HitAHintMode = function(){
       this.input[0].value = "";
       this.input[0].blur();
       this.panel.css("opacity", "0");
+      setTimeout(function(){this.panel.css("display", "none")},0);
       this.hideHint();
    }
 };
@@ -179,6 +182,7 @@ var LinkSearchMode = function(){
    this.panel = $("<div id='chrome_linksearchpanel'"+
                   "style='opacity:0'></div>");
    this.input = $("<input id='chrome_linksearchinput' type='text'></input>")
+   this.panel.css("display", "none");
    this.panel.append(this.input);
    $("body").append(this.panel);
    this.input.keyup(function(e){
@@ -261,6 +265,7 @@ var LinkSearchMode = function(){
    };
 
    this.init = function(){
+      this.panel.css("display", "block");
       this.panel.css("opacity", "0.9");
       this.input[0].focus();
       this.allNodes = jQuery.makeArray($("a[href]:visible"));
@@ -270,6 +275,7 @@ var LinkSearchMode = function(){
       this.input[0].value = "";
       this.input[0].blur();
       this.panel.css("opacity", "0");
+      setTimeout(function(){this.panel.css("display", "none")},0);
       this.hideLinks();
    };
 };
@@ -280,7 +286,7 @@ var linksearch = new LinkSearchMode();
 
 var mode = undefined;
 document.addEventListener('keydown', function(e){
-   console.log(e.keyCode);
+//   console.log(e.keyCode);
 
    var active = document.activeElement;
    if (active && active.id.indexOf("chrome_")!=0 &&
