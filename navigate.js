@@ -167,7 +167,8 @@ var HitAHintMode = function(){
       this.input[0].value = "";
       this.input[0].blur();
       this.panel.css("opacity", "0");
-      setTimeout(function(){this.panel.css("display", "none")},0);
+      var tmp = this.panel;
+      setTimeout(function(){tmp.css("display", "none")},100);
       this.hideHint();
    }
 };
@@ -275,7 +276,8 @@ var LinkSearchMode = function(){
       this.input[0].value = "";
       this.input[0].blur();
       this.panel.css("opacity", "0");
-      setTimeout(function(){this.panel.css("display", "none")},0);
+      var tmp = this.panel;
+      setTimeout(function(){tmp.css("display", "none")},100);
       this.hideLinks();
    };
 };
