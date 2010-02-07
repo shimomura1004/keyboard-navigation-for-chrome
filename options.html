@@ -1,12 +1,21 @@
 <html>
   <head><title>Navigation Extension Options</title>
 <script type="text/javascript">
+function initilizeDB(){
+   if (!localStorage["search"])
+      localStorage["search"] = true;
+   if (!localStorage["hitahint"])
+      localStorage["hitahint"] = true;
+   if (!localStorage["other"])
+      localStorage["other"] = true;
+}
 function save_options() {
    localStorage["search"] = search.checked;
    localStorage["hitahint"] = hitahint.checked;
    localStorage["other"] = other.checked;
 }
 function restore_options() {
+   initilizeDB();
    search.checked   = localStorage["search"]   =="true"?true:false;
    hitahint.checked = localStorage["hitahint"] =="true"?true:false;
    other.checked    = localStorage["other"]    =="true"?true:false;
