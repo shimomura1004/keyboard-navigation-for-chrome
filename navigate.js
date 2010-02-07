@@ -101,6 +101,12 @@ var HitAHintMode = function(){
       }
    });
    this.input.keydown(function(e){
+      if (e.keyCode == KEY.COMMA) {
+         e.preventDefault();
+         self.finish();
+         return;
+      }
+
       if (e.keyCode == KEY.ENTER && self.candidateNodes[this.value] ) {
          target = self.candidateNodes[this.value].node;
          self.finish();
@@ -282,62 +288,77 @@ var LinkSearchMode = function(){
    };
 };
 
+// load option
+var search_enable;
+var hitahint_enable;
+var other_enable;
+var connection = chrome.extension.connect();
+connection.onMessage.addListener(function(info, con){
+   search_enable = info.search=="true"?true:false;
+   hitahint_enable = info.hitahint=="true"?true:false;
+   other_enable = info.other=="true"?true:false;
+});
+connection.postMessage();
+
 
 var hitahint = new HitAHintMode();
 var linksearch = new LinkSearchMode();
 
 var mode = undefined;
 document.addEventListener('keydown', function(e){
-//   console.log(e.keyCode);
-
    var active = document.activeElement;
-   if (active && active.id.indexOf("chrome_")!=0 &&
-       jQuery.inArray(active.tagName, ["INPUT", "TEXTAREA"]) >= 0) {
-          if (e.keyCode == KEY.ESC) {
-             if (active) {
-                active.blur();
-             }
-          }
-       } else if (mode == undefined) {
-          switch(e.keyCode) {
-          case KEY.SLASH: case KEY.PERIOD:
-             e.preventDefault();
-             mode = linksearch;
-             linksearch.init();
-             break;
-          case KEY.COMMA:
-             e.preventDefault();
-             mode = hitahint;
-             hitahint.init();
-             break;
-          case KEY.J:
-             if (checkSite())
-                return;
-             window.scrollBy(0,scrollValue);
-             break;
-          case KEY.K:
-             if (checkSite())
-                return;
-             window.scrollBy(0,-scrollValue);
-             break;
-          case KEY.Z:
-             if (checkSite())
-                return;
-             history.back();
-             break;
-          case KEY.X:
-             if (checkSite())
-                return;
-             history.forward();
-             break;
-          default:
-             break;
-          }
-          if (e.metaKey) {
-             if (KEY.NUM1 <= e.keyCode && e.keyCode <= KEY.NUM9) {
-                e.preventDefault();
-                location.href = links[e.keyCode - KEY.NUM1];
-             }
-          }
-       }
+   if (e.keyCode == KEY.ESC) {
+      e.preventDefault();
+      active.blur();
+      if (mode)
+         mode.finish();
+      return;
+   }
+   if (["INPUT", "TEXTAREA"].indexOf(active.tagName) != -1)
+      return;
+   
+   if (mode)
+      return;
+   if (e.metaKey || e.ctrlKey)
+      return;
+
+   switch(e.keyCode) {
+   case KEY.SLASH: case KEY.PERIOD:
+      if (!search_enable)
+         return;
+      e.preventDefault();
+      mode = linksearch;
+      linksearch.init();
+      break;
+   case KEY.COMMA:
+      if (!hitahint_enable)
+         return;
+      e.preventDefault();
+      mode = hitahint;
+      hitahint.init();
+      break;
+
+   case KEY.J:
+      if (!other_enable || checkSite())
+         return;
+      window.scrollBy(0,scrollValue);
+      break;
+   case KEY.K:
+      if (!other_enable || checkSite())
+         return;
+      window.scrollBy(0,-scrollValue);
+      break;
+   case KEY.Z:
+      if (!other_enable || checkSite())
+         return;
+      history.back();
+      break;
+   case KEY.X:
+      if (!other_enable || checkSite())
+         return;
+      history.forward();
+      break;
+   default:
+      break;
+   }
 }, true);

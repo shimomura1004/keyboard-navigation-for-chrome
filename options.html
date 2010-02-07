@@ -1,45 +1,37 @@
 <html>
-  <head><title>Navigation Extension Options</title></head>
+  <head><title>Navigation Extension Options</title>
 <script type="text/javascript">
-/*
-// Saves options to localStorage.
 function save_options() {
-  var select = document.getElementById("color");
-  var color = select.children[select.selectedIndex].value;
-  localStorage["favorite_color"] = color;
-
-  // Update status to let user know options were saved.
-  var status = document.getElementById("status");
-  status.innerHTML = "Options Saved.";
-  setTimeout(function() {
-    status.innerHTML = "";
-  }, 750);
+   localStorage["search"] = search.checked;
+   localStorage["hitahint"] = hitahint.checked;
+   localStorage["other"] = other.checked;
 }
-
-// Restores select box state to saved value from localStorage.
 function restore_options() {
-  var favorite = localStorage["favorite_color"];
-  if (!favorite) {
-    return;
-  }
-  var select = document.getElementById("color");
-  for (var i = 0; i < select.children.length; i++) {
-    var child = select.children[i];
-    if (child.value == favorite) {
-      child.selected = "true";
-      break;
-    }
-  }
-}
-*/
-</script>
+   search.checked   = localStorage["search"]   =="true"?true:false;
+   hitahint.checked = localStorage["hitahint"] =="true"?true:false;
+   other.checked    = localStorage["other"]    =="true"?true:false;
 
+   search.addEventListener("click", function(e){save_options();}, false);
+   hitahint.addEventListener("click", function(e){save_options();}, false);
+   other.addEventListener("click", function(e){save_options();}, false);
+}
+</script>
+</head>
 <body onload="restore_options()">
-  <h1>Key Configuration (sorry, under construction)</h1>
-  <h3>Search Key</h3>
-  <h3>Hit-a-Hint Key</h3>
-  <h3>Scroll Key</h3>
-  <br>
-  <button onclick="save_options()">Save</button>
+  <h1>Key Configuration</h1>
+  <table>
+    <tr>
+      <td><input type='checkbox' id='search'/></td>
+      <td>Enable Migemo Link Search</td>
+    </tr>
+    <tr>
+      <td><input type='checkbox' id='hitahint'/></td>
+      <td>Enable Hit-a-Hint</td>
+    </tr>
+    <tr>
+      <td><input type='checkbox' id='other'/></td>
+      <td>Enable Other Key Bindings</td>
+    </tr>
+  </table>
 </body>
 </html>

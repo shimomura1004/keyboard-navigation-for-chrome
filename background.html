@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+chrome.self.onConnect.addListener(function(port,name) {
+   port.onMessage.addListener(function(info,con){
+      con.postMessage({
+            "search":localStorage["search"],
+            "hitahint":localStorage["hitahint"],
+            "other":localStorage["other"]
+      });
+  });
+});
+</script>
+</head>
+<body>
+</body>
+</html>
