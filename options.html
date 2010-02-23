@@ -16,6 +16,7 @@ function save_options() {
 }
 function restore_options() {
    initilizeDB();
+
    search.checked   = localStorage["search"]   =="true"?true:false;
    hitahint.checked = localStorage["hitahint"] =="true"?true:false;
    other.checked    = localStorage["other"]    =="true"?true:false;

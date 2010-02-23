@@ -1,3 +1,6 @@
+// ';' to just focus to the target element
+// configuarable 'sites' and 'usechars'
+
 const sites = ["www.google.com","fastladder","b.hatena.ne.jp","www.rememberthemilk.com"];
 const usechars = "asdfjkl";
 const scrollValue = 30;
@@ -9,6 +12,7 @@ const KEY = {
    G: 71,
    J: 74, K: 75, H: 72, L: 76, ESC: 27,
    Z: 90, X: 88,
+   SEMICOLON: 186,
    COMMA:188, PERIOD: 190, SLASH: 191,
 };
 
@@ -107,6 +111,13 @@ var HitAHintMode = function(){
          return;
       }
 
+      if (e.keyCode == KEY.SEMICOLON && self.candidateNodes[this.value]) {
+         target = self.candidateNodes[this.value].node;
+         self.finish();
+         target.focus();
+         e.preventDefault();
+         return;
+      }
       if (e.keyCode == KEY.ENTER && self.candidateNodes[this.value] ) {
          target = self.candidateNodes[this.value].node;
          self.finish();
@@ -228,6 +239,14 @@ var LinkSearchMode = function(){
    });
    this.input.keydown(function(e){
       switch(e.keyCode) {
+      case KEY.SEMICOLON:
+         if (self.selectedNodeIdx == undefined) {
+            return;
+         }
+         self.candidateNodes[self.selectedNodeIdx].focus();
+         self.finish();
+         e.preventDefault();
+         break;
       case KEY.ENTER:
          if (self.selectedNodeIdx == undefined) {
             return;
@@ -294,9 +313,9 @@ var hitahint_enable;
 var other_enable;
 var connection = chrome.extension.connect();
 connection.onMessage.addListener(function(info, con){
-   search_enable = info.search=="true"?true:false;
-   hitahint_enable = info.hitahint=="true"?true:false;
-   other_enable = info.other=="true"?true:false;
+   search_enable = info.search=="false"?false:true;
+   hitahint_enable = info.hitahint=="false"?false:true;
+   other_enable = info.other=="false"?false:true;
 });
 connection.postMessage();
 
@@ -359,6 +378,7 @@ document.addEventListener('keydown', function(e){
       history.forward();
       break;
    default:
+      console.log(e.keyCode);
       break;
    }
 }, true);
