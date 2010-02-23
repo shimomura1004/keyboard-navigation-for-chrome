@@ -7,7 +7,9 @@ chrome.self.onConnect.addListener(function(port,name) {
       con.postMessage({
             "search":localStorage["search"],
             "hitahint":localStorage["hitahint"],
-            "other":localStorage["other"]
+            "other":localStorage["other"],
+            "hitahintkeys": localStorage["hitahintkeys"],
+            "sites":localStorage["disabled_sites"],
       });
   });
 });

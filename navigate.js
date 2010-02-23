@@ -1,8 +1,5 @@
-// ';' to just focus to the target element
 // configuarable 'sites' and 'usechars'
 
-const sites = ["www.google.com","fastladder","b.hatena.ne.jp","www.rememberthemilk.com"];
-const usechars = "asdfjkl";
 const scrollValue = 30;
 const KEY = {
    NUM1:49,NUM2:50,NUM3:51,NUM4:52,NUM5:53,NUM6:54,NUM7:55,NUM8:56,NUM9:57,
@@ -16,14 +13,30 @@ const KEY = {
    COMMA:188, PERIOD: 190, SLASH: 191,
 };
 
+var search_enable;
+var hitahint_enable;
+var other_enable;
+var sites;
+var usechars;
+
+var connection = chrome.extension.connect();
+connection.onMessage.addListener(function(info, con){
+   search_enable = info.search=="false"?false:true;
+   hitahint_enable = info.hitahint=="false"?false:true;
+   other_enable = info.other=="false"?false:true;
+   usechars = info.hitahintkeys || "asdfjkl";
+   sites = (info.sites||"").split(",").slice(0,-1);
+});
+connection.postMessage();
+
 function checkSite() {
-   for (var i=0;i<sites.length;i++) {
-      if (location.host.indexOf(sites[i]) >= 0) {
+   for (var i=0;i<sites.length;i++)
+      if (location.host.search(new RegExp(sites[i])) >= 0)
          return true;
-      }
-   }
    return false;
 }
+
+
 function emulateMouseClick(target, ctrlKey, altKey, shiftKey, metaKey){
    var objects = ["INPUT", "TEXTAREA", "SELECT"];
    if (jQuery.inArray(target.tagName, objects) != -1) {
@@ -308,9 +321,11 @@ var LinkSearchMode = function(){
 };
 
 // load option
+/*
 var search_enable;
 var hitahint_enable;
 var other_enable;
+
 var connection = chrome.extension.connect();
 connection.onMessage.addListener(function(info, con){
    search_enable = info.search=="false"?false:true;
@@ -318,7 +333,7 @@ connection.onMessage.addListener(function(info, con){
    other_enable = info.other=="false"?false:true;
 });
 connection.postMessage();
-
+*/
 
 var hitahint = new HitAHintMode();
 var linksearch = new LinkSearchMode();
@@ -343,14 +358,14 @@ document.addEventListener('keydown', function(e){
 
    switch(e.keyCode) {
    case KEY.SLASH: case KEY.PERIOD:
-      if (!search_enable)
+      if (!search_enable || checkSite())
          return;
       e.preventDefault();
       mode = linksearch;
       linksearch.init();
       break;
    case KEY.COMMA:
-      if (!hitahint_enable)
+      if (!hitahint_enable || checkSite())
          return;
       e.preventDefault();
       mode = hitahint;
@@ -378,7 +393,7 @@ document.addEventListener('keydown', function(e){
       history.forward();
       break;
    default:
-      console.log(e.keyCode);
+//      console.log(e.keyCode);
       break;
    }
 }, true);
