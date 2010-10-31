@@ -1,4 +1,5 @@
-// configuarable 'sites' and 'usechars'
+// don't scroll window when user activate migemo-search
+// linksearch in frames
 
 const scrollValue = 30;
 const KEY = {
@@ -12,6 +13,7 @@ const KEY = {
    SEMICOLON: 186,
    COMMA:188, PERIOD: 190, SLASH: 191,
 };
+const d = document;
 
 var search_enable;
 var hitahint_enable;
@@ -19,6 +21,7 @@ var other_enable;
 var sites;
 var usechars;
 
+// load connection
 var connection = chrome.extension.connect();
 connection.onMessage.addListener(function(info, con){
    search_enable = info.search=="false"?false:true;
@@ -29,17 +32,17 @@ connection.onMessage.addListener(function(info, con){
 });
 connection.postMessage();
 
-function checkSite() {
+function isDisabledSite() {
    for (var i=0;i<sites.length;i++)
-      if (location.host.search(new RegExp(sites[i])) >= 0)
+      if (location.href.search(new RegExp(sites[i])) >= 0)
          return true;
    return false;
 }
 
 
-function emulateMouseClick(target, ctrlKey, altKey, shiftKey, metaKey){
+function click(target, ctrlKey, altKey, shiftKey, metaKey){
    var objects = ["INPUT", "TEXTAREA", "SELECT"];
-   if (jQuery.inArray(target.tagName, objects) != -1) {
+   if ($.inArray(target.tagName, objects) != -1) {
       target.focus();
    } else {
       var evt = document.createEvent('MouseEvents');
@@ -49,10 +52,24 @@ function emulateMouseClick(target, ctrlKey, altKey, shiftKey, metaKey){
       target.dispatchEvent(evt);
    }
 }
-function isInWindow(data){
-   return (data.top  >= 0 && data.top  <= window.innerHeight &&
-           data.left >= 0 && data.left <= window.innerWidth);
+
+function isInArea(innerCR, outer) {
+   var inWindow = true;
+   var outerCR = {width: window.innerWidth, height: window.innerHeight};
+   if(outer){
+      outerCR = outer.getBoundingClientRect();
+      var newInnerCR = {left: outerCR.left + innerCR.left,
+                        top:  outerCR.top  + innerCR.top,
+                        width: innerCR.width,
+                        height: innerCR.height };
+      inWindow = isInArea(newInnerCR);
+   }
+
+   var inFrame = (0 <= innerCR.left && innerCR.left <= outerCR.width &&
+                  0 <= innerCR.top  && innerCR.top  <= outerCR.height);
+   return inWindow && inFrame;
 }
+
 function makeCenter(node){
    var cr = node.getBoundingClientRect();
    window.scrollBy(cr.left - window.innerWidth/2,
@@ -120,6 +137,7 @@ var HitAHintMode = function(){
    this.input.keydown(function(e){
       if (e.keyCode == KEY.COMMA) {
          e.preventDefault();
+         e.stopPropagation();
          self.finish();
          return;
       }
@@ -134,36 +152,54 @@ var HitAHintMode = function(){
       if (e.keyCode == KEY.ENTER && self.candidateNodes[this.value] ) {
          target = self.candidateNodes[this.value].node;
          self.finish();
-         emulateMouseClick(target, e.ctrlKey, e.altKey,
-                           e.shiftKey, e.metaKey);
+         click(target, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
          e.preventDefault();
       }
    });
 
    this.hintsdiv = document.createElement("div");
    this.hintsdiv.id = "chrome_hintswindow";
-   document.body.appendChild(this.hintsdiv);
+   d.body.appendChild(this.hintsdiv);
+
    this.showHint = function(){
-      var allNodes = jQuery.makeArray(
-                        $("a[href]:visible,input[type!=hidden]:visible,"+
-                          "textarea:visible,select:visible,"+
-                          "img[onclick]:visible,button:visible"));
-      var df = document.createDocumentFragment();
-      for (var i=0,j=0;i<allNodes.length;i++) {
-         node = allNodes[i];
-         cr = node.getBoundingClientRect(node);
-         if (isInWindow(cr) && node.id.indexOf("chrome_")!=0) {
-            tag = this.num2string(j++);
-            span = document.createElement("span");
-            span.innerText = tag;
-            span.style.left = ""+(window.pageXOffset+cr.left-8)+"px";
-            span.style.top  = ""+(window.pageYOffset+cr.top -8)+"px";
-            span.className = "chrome_hint chrome_not_candidate";
-            df.appendChild(span);
-            this.candidateNodes[tag] = {"hint":span, "node":node};
+      const targetSelector = "a[href]:visible,input[type!=hidden]:visible,"+
+                             "textarea:visible,select:visible,"+
+                             "img[onclick]:visible,button:visible";
+
+      var frames = d.querySelectorAll('iframe, frame');
+      var docs = [d].concat($.map(frames,function(fs){return fs.contentDocument}));
+
+      for (var idx=0,j=0;idx<docs.length;idx++) {
+         var allNodes = $.makeArray($(targetSelector, docs[idx]));
+         var frameOffset = {top:0, left:0};
+         if (idx != 0) {
+            frameOffset = frames[idx-1].getBoundingClientRect();
          }
+
+         var df = d.createDocumentFragment();
+         for (var i=0;i<allNodes.length;i++) {
+            var node = allNodes[i];
+            var cr = node.getBoundingClientRect();
+
+            if (node.id.indexOf("chrome_")!=0 && isInArea(cr, frames[idx-1]) ){
+               tag = this.num2string(j++);
+               span = docs[idx].createElement("span");
+               span.innerText = tag;
+
+               var left = (window.pageXOffset+cr.left +
+                           (idx?frameOffset.left-docs[idx].body.scrollLeft:0));
+               var top  = (window.pageYOffset+cr.top  +
+                           (idx?frameOffset.top -docs[idx].body.scrollTop :0));
+
+               span.style.left = ""+(left-8)+"px";
+               span.style.top  = ""+(top-8)+"px";
+               span.className = "chrome_hint chrome_not_candidate";
+               df.appendChild(span);
+               this.candidateNodes[tag] = {"hint":span, "node":node};
+            }
+         }
+         this.hintsdiv.appendChild(df);
       }
-      this.hintsdiv.appendChild(df);
       setTimeout(function(){
          $("#chrome_hintswindow > *").removeClass("chrome_not_candidate");
       }, 0);
@@ -196,6 +232,7 @@ var HitAHintMode = function(){
       mode = undefined;
       this.input[0].value = "";
       this.input[0].blur();
+      document.body.focus();
       this.panel.css("opacity", "0");
       var tmp = this.panel;
       setTimeout(function(){tmp.css("display", "none")},100);
@@ -239,11 +276,12 @@ var LinkSearchMode = function(){
       }
       if (self.candidateNodes.length > 0) {
          self.input.css("backgroundColor", "white");
+	 
          self.selectedNodeIdx = 0;
-         addClass(self.candidateNodes[0], "chrome_search_selected");
-         makeCenter(self.candidateNodes[0]);
-         for (var i=1;i<self.candidateNodes.length;i++){
-            addClass(self.candidateNodes[i], "chrome_search_candidate");
+	     addClass(self.candidateNodes[0], "chrome_search_selected");
+//	     makeCenter(self.candidateNodes[0]);
+	     for (var i=1;i<self.candidateNodes.length;i++){
+	        addClass(self.candidateNodes[i], "chrome_search_candidate");
          }
       } else {
          self.input.css("backgroundColor", "red");
@@ -264,8 +302,8 @@ var LinkSearchMode = function(){
          if (self.selectedNodeIdx == undefined) {
             return;
          }
-         emulateMouseClick(self.candidateNodes[self.selectedNodeIdx],
-                           e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
+         click(self.candidateNodes[self.selectedNodeIdx],
+	       e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
          self.finish();
          e.preventDefault();
          break;
@@ -307,7 +345,13 @@ var LinkSearchMode = function(){
       this.panel.css("display", "block");
       this.panel.css("opacity", "0.9");
       this.input[0].focus();
-      this.allNodes = jQuery.makeArray($("a[href]:visible"));
+
+      const targetSelector = "a[href]:visible";
+      this.allNodes = $.makeArray($(targetSelector));
+      for (var i=0,frames=d.querySelectorAll("iframe"),len=frames.length;i<len;i++) {
+         this.allNodes = this.allNodes.concat($.makeArray($(targetSelector,
+                                                            frames[i].contentDocument)));
+      }
    };
    this.finish = function(){
       mode = undefined;
@@ -320,26 +364,13 @@ var LinkSearchMode = function(){
    };
 };
 
-// load option
-/*
-var search_enable;
-var hitahint_enable;
-var other_enable;
-
-var connection = chrome.extension.connect();
-connection.onMessage.addListener(function(info, con){
-   search_enable = info.search=="false"?false:true;
-   hitahint_enable = info.hitahint=="false"?false:true;
-   other_enable = info.other=="false"?false:true;
-});
-connection.postMessage();
-*/
-
 var hitahint = new HitAHintMode();
 var linksearch = new LinkSearchMode();
 
 var mode = undefined;
-document.addEventListener('keydown', function(e){
+
+
+function start(e){
    var active = document.activeElement;
    if (e.keyCode == KEY.ESC) {
       e.preventDefault();
@@ -358,14 +389,14 @@ document.addEventListener('keydown', function(e){
 
    switch(e.keyCode) {
    case KEY.SLASH: case KEY.PERIOD:
-      if (!search_enable || checkSite())
+      if (!search_enable || isDisabledSite())
          return;
       e.preventDefault();
       mode = linksearch;
       linksearch.init();
       break;
    case KEY.COMMA:
-      if (!hitahint_enable || checkSite())
+      if (!hitahint_enable || isDisabledSite())
          return;
       e.preventDefault();
       mode = hitahint;
@@ -373,22 +404,22 @@ document.addEventListener('keydown', function(e){
       break;
 
    case KEY.J:
-      if (!other_enable || checkSite())
+      if (!other_enable || isDisabledSite())
          return;
       window.scrollBy(0,scrollValue);
       break;
    case KEY.K:
-      if (!other_enable || checkSite())
+      if (!other_enable || isDisabledSite())
          return;
       window.scrollBy(0,-scrollValue);
       break;
    case KEY.Z:
-      if (!other_enable || checkSite())
+      if (!other_enable || isDisabledSite())
          return;
       history.back();
       break;
    case KEY.X:
-      if (!other_enable || checkSite())
+      if (!other_enable || isDisabledSite())
          return;
       history.forward();
       break;
@@ -396,4 +427,11 @@ document.addEventListener('keydown', function(e){
 //      console.log(e.keyCode);
       break;
    }
-}, true);
+}
+
+const frames = d.querySelectorAll('iframe, frame');
+const docs = [d].concat($.map(frames, function(f){return f.contentDocument}));
+$.map(docs, function(d){d.addEventListener('keydown', start)});
+$.map(frames, function(f){f.addEventListener('load', function(e){
+   e.target.contentDocument.addEventListener('keydown', start);
+})});

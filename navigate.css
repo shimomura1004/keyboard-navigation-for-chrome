@@ -1,6 +1,6 @@
 .chrome_hint {
-    background-color: yellow;
-    border: 2px solid orange;
+    background-color: yellow !important;
+    border: 2px solid orange !important;
     font-size: 10pt;
     padding: 0pt, 1pt;
     margin: 0;
