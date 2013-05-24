@@ -13,7 +13,7 @@ const KEY = {
    SEMICOLON: 186,
    COMMA:188, PERIOD: 190, SLASH: 191,
 };
-const d = document;
+var d = document;
 
 var search_enable;
 var hitahint_enable;
@@ -157,9 +157,9 @@ var HitAHintMode = function(){
       }
    });
 
-   this.hintsdiv = document.createElement("div");
-   this.hintsdiv.id = "chrome_hintswindow";
-   d.body.appendChild(this.hintsdiv);
+   var div = $("<div></div>").attr("id", "chrome_hintswindow");
+   $("body").append(div);
+   this.hintsdiv = div[0];
 
    this.showHint = function(){
       const targetSelector = "a[href]:visible,input[type!=hidden]:visible,"+
@@ -259,7 +259,7 @@ var LinkSearchMode = function(){
          self.finish();
          return;
       }
-      
+
       if (self.previousString == this.value) {
          return;
       }
@@ -276,7 +276,7 @@ var LinkSearchMode = function(){
       }
       if (self.candidateNodes.length > 0) {
          self.input.css("backgroundColor", "white");
-	 
+
          self.selectedNodeIdx = 0;
 	     addClass(self.candidateNodes[0], "chrome_search_selected");
 //	     makeCenter(self.candidateNodes[0]);
@@ -364,8 +364,13 @@ var LinkSearchMode = function(){
    };
 };
 
-var hitahint = new HitAHintMode();
-var linksearch = new LinkSearchMode();
+
+var hitahint;
+var linksearch;
+$(function(){
+  hitahint = new HitAHintMode();
+  linksearch = new LinkSearchMode();
+});
 
 var mode = undefined;
 
@@ -381,7 +386,7 @@ function start(e){
    }
    if (["INPUT", "TEXTAREA"].indexOf(active.tagName) != -1)
       return;
-   
+
    if (mode)
       return;
    if (e.metaKey || e.ctrlKey)

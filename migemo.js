@@ -1,4 +1,4 @@
-﻿// JavaScript/Migemo
+// JavaScript/Migemo
 
 var migemo = {
   initialize: function(path) {

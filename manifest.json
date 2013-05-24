@@ -1,15 +1,18 @@
 {
+  "manifest_version": 2,
   "content_scripts": [
     {
       "js": [ "jquery.js", "migemoDict.js", "migemo.js", "navigate.js" ],
       "css": [ "navigate.css" ],
-      "matches": [ "http://*/*", "https://*/*" ]
+      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
+      "run_at": "document_start"
     }
   ],
-  "run_at": "document_start",
   "options_page": "options.html",
-  "background_page": "background.html",
-  "version": "0.6.2.1",
+  "background" : {
+    "page": "background.html"
+  },
+  "version": "0.7",
   "name": "Keyboard navigation for Chrome",
   "description": "Hit-a-Hint and migemo link search for Chrome",
   "icons": { "48": "icon48.png",
