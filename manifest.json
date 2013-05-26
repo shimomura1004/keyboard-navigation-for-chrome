@@ -9,7 +9,9 @@
   "run_at": "document_start",
   "options_page": "options.html",
   "background_page": "background.html",
-  "version": "0.6",
+  "version": "0.6.2.1",
   "name": "Keyboard navigation for Chrome",
-  "description": "Hit-a-Hint and migemo link search for Chrome"
+  "description": "Hit-a-Hint and migemo link search for Chrome",
+  "icons": { "48": "icon48.png",
+             "128": "icon128.png" }
 }

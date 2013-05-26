@@ -1,5 +1,5 @@
-// don't scroll window when user activate migemo-search
 // linksearch in frames
+// start link searching within visible area
 
 const scrollValue = 30;
 const KEY = {
@@ -326,7 +326,7 @@ var LinkSearchMode = function(){
             }
             new_target = self.candidateNodes[self.selectedNodeIdx];
             addClass(new_target, "chrome_search_selected");
-            if ( !isInWindow(new_target.getBoundingClientRect()) ) {
+            if ( !isInArea(new_target.getBoundingClientRect()) ) {
                makeCenter(new_target);
             }
          }
@@ -429,8 +429,8 @@ function start(e){
    }
 }
 
-const frames = d.querySelectorAll('iframe, frame');
-const docs = [d].concat($.map(frames, function(f){return f.contentDocument}));
+var frames = d.querySelectorAll('iframe, frame');
+var docs = [d].concat($.map(frames, function(f){return f.contentDocument}));
 $.map(docs, function(d){d.addEventListener('keydown', start)});
 $.map(frames, function(f){f.addEventListener('load', function(e){
    e.target.contentDocument.addEventListener('keydown', start);
